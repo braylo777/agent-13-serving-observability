@@ -75,3 +75,18 @@ Cloudflare Workers · Workers AI (Llama 3.3 70B) · Workers KV · vanilla JS · 
 
 ## License
 MIT
+
+## How to run
+
+```bash
+npm install   # dev deps only
+npm test      # 15 offline tests, no Workers AI calls
+npm run dev   # local wrangler dev
+```
+
+## Test results (2026-10-27)
+
+| Suite | Tests | Status |
+|---|---|---|
+| Unit + edge cases (test/edge.test.js added) | 11→15 | all pass |
+| Live demo https://agent-13-serving-observability.braylo777.workers.dev | HTTP 200 | verified 2026-10-27 |
