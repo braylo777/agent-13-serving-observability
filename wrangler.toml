@@ -1,0 +1,20 @@
+name = "agent-13-serving-observability"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[ai]
+binding = "AI"   # Workers AI free tier
+
+[[kv_namespaces]]
+binding = "TRACES"   # free KV: last 200 traces
+id = "08cefa1ab8da4476b6b6a82af722e9ed"
+
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1013"
+simple = { limit = 5, period = 60 }
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true

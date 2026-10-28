@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Serving & Observability · Braylo</title><style>:root{--navy:#0d1520;--cream:#efe9dc;--brass:#b39b70;--ink:#16202e;--line:#253246}
+*{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--cream);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:40px 20px 56px}
+header .tag{color:var(--brass);letter-spacing:.14em;text-transform:uppercase;font-size:12px;font-weight:600}
+h1{font-family:Georgia,serif;font-weight:500;font-size:34px;margin:6px 0 8px}
+.lead{opacity:.82;max-width:640px;margin:0 0 24px}
+.card{background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}
+.card h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin:0 0 10px;font-weight:600}
+textarea,input,select{width:100%;font:inherit;color:var(--cream);background:var(--navy);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--brass)}
+button{font:inherit;font-weight:600;background:var(--brass);color:var(--navy);border:0;border-radius:8px;padding:10px 18px;cursor:pointer}
+button.ghost{background:transparent;color:var(--cream);border:1px solid var(--line)}button:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}.row>input,.row>select{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{font-size:13px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--cream);font-weight:400}
+.chip:hover{border-color:var(--brass)}
+.out{white-space:pre-wrap;min-height:48px}.meta{font-size:12px;opacity:.6;margin-top:8px}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(179,155,112,.15);color:var(--brass);margin:2px 4px 2px 0}
+pre{background:var(--navy);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:13px;max-height:360px;margin:0}
+footer{margin-top:28px;font-size:13px;opacity:.65}a{color:var(--brass)}
+</style></head>
+<body><div class="wrap"><header><div class="tag">Project 13 · ML/AI engineering portfolio</div><h1>Model Serving &amp; Observability</h1>
+<p class="lead">Every request gets a trace ID and timed spans. The dashboard shows p50/p95 latency per route, tokens per request and an <b>estimated</b> cost from Workers AI's published neuron pricing, read live from a KV trace store.</p></header>
+<div class="card"><h2>Send a traced request</h2><div class="row"><input id="q" maxlength="500" placeholder="Ask Llama 3.3 anything…"><button id="go">Send to model</button><button class="ghost" id="ping">Ping (no model)</button></div><div id="ans" class="out meta"></div></div>
+<div class="card"><h2>Live metrics (last 200 traces)</h2><div id="m" class="meta">Loading…</div></div>
+<div class="card"><h2>Recent traces</h2><pre id="t">Loading…</pre></div>
+<footer>Runs on Cloudflare Workers + Workers AI + KV, free tier · cost figures are estimates, the free tier bills $0 · <a href="https://github.com/braylo777/agent-13-serving-observability">Source on GitHub</a></footer></div>
+<script>
+const $=id=>document.getElementById(id);const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+async function load(){const m=await (await fetch("/api/metrics")).json();
+$("m").innerHTML="<table style='width:100%;font-size:13px'><tr><th align=left>Route</th><th>n</th><th>errors</th><th>p50 ms</th><th>p95 ms</th><th>tokens in/out</th><th>est. $/req</th></tr>"+Object.entries(m.routes).map(([r,v])=>`<tr><td>${esc(r)}</td><td align=center>${v.n}</td><td align=center>${v.errors}</td><td align=center>${v.p50_ms}</td><td align=center>${v.p95_ms}</td><td align=center>${v.avg_tokens_in??"–"}/${v.avg_tokens_out??"–"}</td><td align=center>${v.est_cost_usd_per_req??"–"}</td></tr>`).join("")+"</table>";
+const t=await (await fetch("/api/traces?n=6")).json();$("t").textContent=t.map(x=>`${x.trace_id.slice(0,12)}… ${x.route} ${x.status} ${x.duration_ms}ms
+`+x.spans.map(s=>`   └ ${s.name} +${s.start_ms}ms ${s.duration_ms}ms${s.error?" ERR "+s.error:""}`).join("
+")).join("
+")||"No traces yet."}
+async function go(){const q=$("q").value.trim();if(!q)return;$("go").disabled=true;$("ans").textContent="Calling model…";
+const r=await fetch("/api/chat",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({prompt:q})});const j=await r.json();
+$("ans").textContent=(j.answer||("Error: "+j.error))+`
+
+HTTP ${r.status} · trace ${j.trace_id}`+(j.cost?` · ${j.tokens.in}/${j.tokens.out} tokens · est. $${j.cost.usd}`:"");$("go").disabled=false;load()}
+$("go").onclick=go;$("ping").onclick=async()=>{const j=await (await fetch("/api/ping")).json();$("ans").textContent="ping ok · trace "+j.trace_id;load()};load();
+</script></body></html>

@@ -1,0 +1,15 @@
+{
+  "name": "agent-13-serving-observability",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --import ./test/support/register.mjs --test test/*.test.js",
+    "build": "node build.mjs",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

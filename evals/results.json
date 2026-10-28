@@ -1,0 +1,39 @@
+{
+  "project": "agent-13-serving-observability",
+  "eval": "synthetic_ping_load",
+  "base": "https://agent-13-serving-observability.braylo777.workers.dev",
+  "run_at": "2026-10-28T00:58:10.233Z",
+  "n": 40,
+  "metrics": {
+    "client_latency_ms": {
+      "n": 40,
+      "p50": 28,
+      "p95": 63,
+      "note": "end-to-end /api/ping from the eval client"
+    },
+    "server_reported": {
+      "n": 14,
+      "errors": 0,
+      "p50_ms": 0,
+      "p95_ms": 0,
+      "avg_tokens_in": null,
+      "avg_tokens_out": null,
+      "est_cost_usd_per_req": null
+    },
+    "unique_trace_ids": 40,
+    "sample_spans": [
+      {
+        "name": "work.hash",
+        "start_ms": 0,
+        "attrs": {},
+        "duration_ms": 0
+      }
+    ]
+  },
+  "chat_eval": {
+    "status": "not yet run",
+    "reason": "Workers AI free daily neuron quota exhausted until ~00:00 UTC Oct 28 (~7 PM CT Oct 27 → reset next day ~7 PM CT Oct 28)",
+    "rerun": "BASE=https://agent-13-serving-observability.braylo777.workers.dev node evals/run-chat.mjs"
+  },
+  "notes": "Ping path exercises the same tracer, KV store and dashboard as /api/chat; no model tokens or cost on this path."
+}
