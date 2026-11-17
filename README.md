@@ -36,7 +36,7 @@ USD = neurons / 1,000 × $0.011. The free tier includes 10,000 neurons/day at $0
 
 ## Eval results
 ### Synthetic `/api/ping` load (no Workers AI)
-Run after deploy: `node evals/run-synthetic.mjs`. Writes [`evals/results.json`](evals/results.json).
+Run after deploy: `python3 evals/run_synthetic.py`. Writes [`evals/results.json`](evals/results.json).
 
 | Metric | Result | Definition |
 |---|---|---|
@@ -48,45 +48,34 @@ Run after deploy: `node evals/run-synthetic.mjs`. Writes [`evals/results.json`](
 Workers AI free daily neuron quota is exhausted until ~7 PM CT Oct 28. Rerun:
 
 ```bash
-BASE=https://agent-13-serving-observability.braylo777.workers.dev node evals/run-chat.mjs
+BASE=https://agent-13-serving-observability.braylo777.workers.dev python3 evals/run_chat.py
 ```
 
 That script records per-request latency, tokens, cost estimate and span names for 20 prompts (throttled to the demo's 5 req/min limit).
 
 ## Tests
-11 offline unit tests (`node:test`, Workers AI + KV mocked): trace ID format, span timing/errors, published-price cost math, percentiles, token fallback, summarize-by-route, KV cap at 200, HTTP chat with usage / without usage / 502, validation, rate limit, ping and 404.
+Python: 8 test functions; Rust: 4 test functions (Workers AI, KV, clock and rate limiter mocked behind a `Host` trait): trace ID format, span timing and errors, published-price cost math, percentiles, token fallback, summarize-by-route, the 200-trace KV cap, and the HTTP routes (chat, fallback, 502 with a stored error trace, 400, 429, ping, 404). Cost estimates, span timings, summaries, percentiles and the KV store give identical output for the old JavaScript, the Python and the Rust code on a shared scenario (13 cost inputs, 4 serve variants, 205 stored traces).
 
 ```bash
-npm test
+python3 -m pytest
+cd worker && cargo test
 ```
 
 ## Run it
 ```bash
-npm install
-npm test
-npx wrangler dev     # needs a TRACES KV binding
-npx wrangler deploy  # free tier
-node evals/run-synthetic.mjs   # no model
-node evals/run-chat.mjs        # needs Workers AI quota
+python3 -m pytest                       # Python tests
+cd worker && cargo test                 # Rust tests
+cd worker && worker-build --release     # build the Worker (wasm)
+wrangler dev                            # needs a TRACES KV binding
+wrangler deploy                         # free tier
+python3 evals/run_synthetic.py          # no model
+python3 evals/run_chat.py               # needs Workers AI quota
 ```
 
+The previous JavaScript version is on the `legacy-js` branch and the `pre-pycrust` tag.
+
 ## Stack
-Cloudflare Workers · Workers AI (Llama 3.3 70B) · Workers KV · vanilla JS · node:test
+Cloudflare Workers (Rust, workers-rs) · Workers AI (Llama 3.3 70B) · Workers KV · Python (pytest)
 
 ## License
 MIT
-
-## How to run
-
-```bash
-npm install   # dev deps only
-npm test      # 15 offline tests, no Workers AI calls
-npm run dev   # local wrangler dev
-```
-
-## Test results (2026-10-27)
-
-| Suite | Tests | Status |
-|---|---|---|
-| Unit + edge cases (test/edge.test.js added) | 11→15 | all pass |
-| Live demo https://agent-13-serving-observability.braylo777.workers.dev | HTTP 200 | verified 2026-10-27 |

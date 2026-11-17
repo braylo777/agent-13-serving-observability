@@ -1,4 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Serving & Observability · Braylo</title><style>:root{--navy:#0d1520;--cream:#efe9dc;--brass:#b39b70;--ink:#16202e;--line:#253246}
+//! Demo page (generated from the old src/page.html; kept as a Rust string).
+pub const PAGE: &str = r####"<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Serving & Observability · Braylo</title><style>:root{--navy:#0d1520;--cream:#efe9dc;--brass:#b39b70;--ink:#16202e;--line:#253246}
 *{box-sizing:border-box}body{margin:0;background:var(--navy);color:var(--cream);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:40px 20px 56px}
 header .tag{color:var(--brass);letter-spacing:.14em;text-transform:uppercase;font-size:12px;font-weight:600}
@@ -38,4 +39,4 @@ $("ans").textContent=(j.answer||("Error: "+j.error))+`
 
 HTTP ${r.status} · trace ${j.trace_id}`+(j.cost?` · ${j.tokens.in}/${j.tokens.out} tokens · est. $${j.cost.usd}`:"");$("go").disabled=false;load()}
 $("go").onclick=go;$("ping").onclick=async()=>{const j=await (await fetch("/api/ping")).json();$("ans").textContent="ping ok · trace "+j.trace_id;load()};load();
-</script></body></html>
+</script></body></html>"####;
