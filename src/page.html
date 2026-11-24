@@ -29,9 +29,7 @@ const $=id=>document.getElementById(id);const esc=s=>String(s).replace(/[&<>]/g,
 async function load(){const m=await (await fetch("/api/metrics")).json();
 $("m").innerHTML="<table style='width:100%;font-size:13px'><tr><th align=left>Route</th><th>n</th><th>errors</th><th>p50 ms</th><th>p95 ms</th><th>tokens in/out</th><th>est. $/req</th></tr>"+Object.entries(m.routes).map(([r,v])=>`<tr><td>${esc(r)}</td><td align=center>${v.n}</td><td align=center>${v.errors}</td><td align=center>${v.p50_ms}</td><td align=center>${v.p95_ms}</td><td align=center>${v.avg_tokens_in??"–"}/${v.avg_tokens_out??"–"}</td><td align=center>${v.est_cost_usd_per_req??"–"}</td></tr>`).join("")+"</table>";
 const t=await (await fetch("/api/traces?n=6")).json();$("t").textContent=t.map(x=>`${x.trace_id.slice(0,12)}… ${x.route} ${x.status} ${x.duration_ms}ms
-`+x.spans.map(s=>`   └ ${s.name} +${s.start_ms}ms ${s.duration_ms}ms${s.error?" ERR "+s.error:""}`).join("
-")).join("
-")||"No traces yet."}
+`+x.spans.map(s=>`   └ ${s.name} +${s.start_ms}ms ${s.duration_ms}ms${s.error?" ERR "+s.error:""}`).join("\n")).join("\n")||"No traces yet."}
 async function go(){const q=$("q").value.trim();if(!q)return;$("go").disabled=true;$("ans").textContent="Calling model…";
 const r=await fetch("/api/chat",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({prompt:q})});const j=await r.json();
 $("ans").textContent=(j.answer||("Error: "+j.error))+`
